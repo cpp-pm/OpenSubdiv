@@ -22,8 +22,6 @@
 #   language governing permissions and limitations under the Apache License.
 #
 
-project(OpenSubdiv)
-
 cmake_minimum_required(VERSION 2.8.6)
 
 # Turn on folder support
@@ -52,6 +50,18 @@ endif()
     )
 
 #-------------------------------------------------------------------------------
+
+cmake_policy(SET CMP0048 NEW)
+
+if(HUNTER_ENABLED)
+  include("cmake/HunterGate.cmake")
+  HunterGate(
+    URL "https://github.com/cpp-pm/hunter/archive/v0.24.0.tar.gz"
+    SHA1 "a3d7f4372b1dcd52faa6ff4a3bd5358e1d0e5efd"
+  )
+endif()
+
+project(OpenSubdiv VERSION "${OSD_SONAME}")
 
 message(STATUS "Compiling ${PROJECT_NAME} version ${OpenSubdiv_VERSION}")
 message(STATUS "Using cmake version ${CMAKE_VERSION}")
@@ -346,7 +356,12 @@ if(NOT NO_OPENCL)
         find_package(CLEW)
     endif()
     if (NOT CLEW_FOUND)
-        find_package(OpenCL 1.1)
+        if(HUNTER_ENABLED)
+          hunter_add_package(OpenCL)
+          find_package(OpenCL CONFIG REQUIRED)
+        else()
+          find_package(OpenCL 1.1)
+        endif()
     else()
         set(OPENCL_FOUND TRUE)
     endif()
@@ -355,7 +370,12 @@ if(NOT NO_CUDA)
     find_package(CUDA 4.0)
 endif()
 if(NOT NO_GLFW AND NOT NO_OPENGL AND NOT ANDROID AND NOT IOS)
-    find_package(GLFW 3.0.0)
+    if(HUNTER_ENABLED)
+        hunter_add_package(glfw)
+        find_package(glfw3 REQUIRED)
+    else()
+        find_package(GLFW 3.0.0)
+    endif()
 endif()
 if(NOT NO_PTEX)
    find_package(PTex 2.0)
@@ -369,10 +389,15 @@ if (OPENGL_FOUND AND NOT IOS)
         -DOPENSUBDIV_HAS_OPENGL
     )
     if (NOT NO_GLEW)
-        if (APPLE)
-            find_package(GLEW)
+        if(HUNTER_ENABLED)
+            hunter_add_package(glew)
+            find_package(glew CONFIG REQUIRED)
         else()
-            find_package(GLEW REQUIRED)
+            if (APPLE)
+                find_package(GLEW)
+            else()
+                find_package(GLEW REQUIRED)
+            endif()
         endif()
     endif()
     if(GLEW_FOUND)
@@ -813,6 +838,41 @@ macro(osd_add_glfw_executable target folder)
     endif()
 
 endmacro()
+
+####
+# Installation (https://github.com/forexample/package-example)
+
+include(GNUInstallDirs)
+
+set(config_install_dir "lib/cmake/${PROJECT_NAME}")
+
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+
+set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(targets_export_name "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
+
+include(CMakePackageConfigHelpers)
+
+# Note: PROJECT_VERSION is used as a VERSION
+write_basic_package_version_file(
+    "${version_config}" COMPATIBILITY SameMajorVersion
+)
+
+# Note: variable 'targets_export_name' used
+configure_file("cmake/Config.cmake.in" "${project_config}" @ONLY)
+
+install(
+    FILES "${project_config}" "${version_config}"
+    DESTINATION "${config_install_dir}"
+)
+
+install(
+    EXPORT "${targets_export_name}"
+    NAMESPACE "${namespace}"
+    DESTINATION "${config_install_dir}"
+)
 
 #-------------------------------------------------------------------------------
 # Build targets

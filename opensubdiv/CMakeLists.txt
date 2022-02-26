@@ -145,7 +145,9 @@ if (NOT NO_LIB)
         ${PLATFORM_CPU_LIBRARIES}
     )
 
-    install( TARGETS osd_static_cpu DESTINATION "${CMAKE_LIBDIR_BASE}" )
+    install( TARGETS osd_static_cpu
+             EXPORT "${targets_export_name}"
+             DESTINATION "${CMAKE_LIBDIR_BASE}" )
 
     if( OSD_GPU )
         # this macro uses FindCUDA.cmake to compile .cu kernel files
@@ -163,7 +165,9 @@ if (NOT NO_LIB)
             ${PLATFORM_CPU_LIBRARIES} ${PLATFORM_GPU_LIBRARIES}
         )
 
-        install( TARGETS osd_static_gpu DESTINATION "${CMAKE_LIBDIR_BASE}" )
+        install( TARGETS osd_static_gpu
+                 EXPORT "${targets_export_name}"
+                 DESTINATION "${CMAKE_LIBDIR_BASE}" )
     endif()
 
 
@@ -201,7 +205,9 @@ if (NOT NO_LIB)
             ${PLATFORM_CPU_LIBRARIES}
         )
 
-        install( TARGETS osd_dynamic_cpu LIBRARY DESTINATION "${CMAKE_LIBDIR_BASE}" )
+        install( TARGETS osd_dynamic_cpu
+                 EXPORT "${targets_export_name}"
+                 LIBRARY DESTINATION "${CMAKE_LIBDIR_BASE}" )
 
         #---------------------------------------------------
         if( OSD_GPU )
@@ -233,7 +239,9 @@ if (NOT NO_LIB)
                 ${PLATFORM_CPU_LIBRARIES} ${PLATFORM_GPU_LIBRARIES}
             )
 
-            install( TARGETS osd_dynamic_gpu LIBRARY DESTINATION "${CMAKE_LIBDIR_BASE}" )
+            install( TARGETS osd_dynamic_gpu
+                     EXPORT "${targets_export_name}"
+                     LIBRARY DESTINATION "${CMAKE_LIBDIR_BASE}" )
         endif()
 
     endif()
@@ -296,6 +304,7 @@ if (NOT NO_LIB)
         )
 
         install( TARGETS osd_static_framework
+             EXPORT "${targets_export_name}"
              LIBRARY DESTINATION "${CMAKE_LIBDIR_BASE}"
              FRAMEWORK DESTINATION "${CMAKE_LIBDIR_BASE}"
              PUBLIC_HEADER  DESTINATION "${CMAKE_INCDIR_BASE}"
@@ -344,6 +353,7 @@ if (NOT NO_LIB)
             )
 
             install( TARGETS osd_dynamic_framework
+                 EXPORT "${targets_export_name}"
                  FRAMEWORK DESTINATION "${CMAKE_LIBDIR_BASE}"
                  LIBRARY DESTINATION "${CMAKE_LIBDIR_BASE}"
                  PUBLIC_HEADER  DESTINATION "${CMAKE_INCDIR_BASE}"
